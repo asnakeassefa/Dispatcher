@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'app_theme_extensions.dart';
 
 class AppTheme {
   // Color Palette
@@ -403,9 +402,7 @@ class AppTheme {
       ),
       
       // Theme Extensions
-      extensions: const <ThemeExtension<dynamic>>[
-        AppThemeExtensions.light,
-      ],
+      
     );
   }
 
@@ -444,9 +441,7 @@ class AppTheme {
       ),
       
       // Theme Extensions
-      extensions: const <ThemeExtension<dynamic>>[
-        AppThemeExtensions.dark,
-      ],
+      
     );
   }
 }
