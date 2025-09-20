@@ -1,6 +1,5 @@
 import 'package:dispatcher/core/di/injection.dart';
 import 'package:flutter/material.dart';
-import 'package:injectable/injectable.dart';
 import 'app.dart';
 import 'core/flavor/flavor.dart';
 
@@ -13,5 +12,3 @@ void main() async {
   await configureInjection(flavor.name);
   runApp(const MyApp());
 }
-
-
