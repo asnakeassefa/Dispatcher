@@ -8,6 +8,7 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final TextInputType? keyboardType;
   final int? maxLines;
+  final IconData? prefixIcon;
 
   const CustomTextField({
     super.key,
@@ -18,13 +19,14 @@ class CustomTextField extends StatefulWidget {
     this.validator,
     this.keyboardType,
     this.maxLines,
+    this.prefixIcon,
   });
 
   @override
-  _CustomTextFieldState createState() => _CustomTextFieldState();
+  CustomTextFieldState createState() => CustomTextFieldState();
 }
 
-class _CustomTextFieldState extends State<CustomTextField> {
+class CustomTextFieldState extends State<CustomTextField> {
   late bool _obscureText;
 
   @override
@@ -57,14 +59,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
             obscureText: widget.isObscure ? _obscureText : false,
             validator: widget.validator,
             keyboardType: widget.keyboardType,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontSize: 16,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium,
+
             decoration: InputDecoration(
               hintText: widget.hintText,
               hintStyle: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
                 fontWeight: FontWeight.w300,
                 // fontSize: 16,
               ),
@@ -74,7 +74,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 context,
               ).inputDecorationTheme.enabledBorder,
               errorBorder: Theme.of(context).inputDecorationTheme.errorBorder,
-              
+              prefixIcon: widget.prefixIcon != null
+                  ? Icon(
+                      widget.prefixIcon,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    )
+                  : null,
               suffixIcon: widget.isObscure
                   ? IconButton(
                       icon: Icon(

@@ -7,28 +7,28 @@ class AppTheme {
   static const Color primaryVariant = Color(0xFF1D4ED8); // Darker Blue
   static const Color secondaryColor = Color(0xFF10B981); // Green
   static const Color secondaryVariant = Color(0xFF059669); // Darker Green
-  
+
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color backgroundColor = Color(0xFFF8FAFC);
   static const Color errorColor = Color(0xFFEF4444);
   static const Color warningColor = Color(0xFFF59E0B);
   static const Color successColor = Color(0xFF10B981);
-  
+
   // Text Colors
   static const Color textPrimary = Color(0xFF1F2937);
   static const Color textSecondary = Color(0xFF6B7280);
   static const Color textTertiary = Color(0xFF9CA3AF);
-  
+
   // Border Colors
-  static const Color borderColor = Color(0xFFE5E7EB);
-  static const Color borderColorLight = Color(0xFFF3F4F6);
-  
+  static const Color borderColor = Color.fromARGB(255, 219, 227, 238);
+  static const Color borderColorLight = Color(0xFF9CA3AF);
+
   // Shadow Colors
   static const Color shadowColor = Color(0x1A000000);
-  
+
   // Font Family
   static String get fontFamily => GoogleFonts.poppins().fontFamily!;
-  
+
   // Text Styles
   static TextStyle get headlineLarge => GoogleFonts.poppins(
     fontSize: 32,
@@ -36,84 +36,84 @@ class AppTheme {
     color: textPrimary,
     height: 1.2,
   );
-  
+
   static TextStyle get headlineMedium => GoogleFonts.poppins(
     fontSize: 28,
     fontWeight: FontWeight.w600,
     color: textPrimary,
     height: 1.3,
   );
-  
+
   static TextStyle get headlineSmall => GoogleFonts.poppins(
     fontSize: 24,
     fontWeight: FontWeight.w600,
     color: textPrimary,
     height: 1.3,
   );
-  
+
   static TextStyle get titleLarge => GoogleFonts.poppins(
     fontSize: 22,
     fontWeight: FontWeight.w600,
     color: textPrimary,
     height: 1.3,
   );
-  
+
   static TextStyle get titleMedium => GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: textPrimary,
     height: 1.4,
   );
-  
+
   static TextStyle get titleSmall => GoogleFonts.poppins(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: textPrimary,
     height: 1.4,
   );
-  
+
   static TextStyle get bodyLarge => GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     color: textPrimary,
     height: 1.5,
   );
-  
+
   static TextStyle get bodyMedium => GoogleFonts.poppins(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: textPrimary,
     height: 1.5,
   );
-  
+
   static TextStyle get bodySmall => GoogleFonts.poppins(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     color: textSecondary,
     height: 1.4,
   );
-  
+
   static TextStyle get labelLarge => GoogleFonts.poppins(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: textPrimary,
     height: 1.4,
   );
-  
+
   static TextStyle get labelMedium => GoogleFonts.poppins(
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: textPrimary,
     height: 1.4,
   );
-  
+
   static TextStyle get labelSmall => GoogleFonts.poppins(
     fontSize: 11,
     fontWeight: FontWeight.w500,
     color: textSecondary,
     height: 1.3,
   );
-  
+
   // Custom Text Styles
   static TextStyle get buttonText => GoogleFonts.poppins(
     fontSize: 14,
@@ -121,14 +121,14 @@ class AppTheme {
     color: Colors.white,
     height: 1.2,
   );
-  
+
   static TextStyle get caption => GoogleFonts.poppins(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     color: textTertiary,
     height: 1.3,
   );
-  
+
   static TextStyle get overline => GoogleFonts.poppins(
     fontSize: 10,
     fontWeight: FontWeight.w500,
@@ -148,15 +148,13 @@ class AppTheme {
         secondary: secondaryColor,
         secondaryContainer: Color(0xFFD1FAE5),
         surface: surfaceColor,
-        background: backgroundColor,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: textPrimary,
-        onBackground: textPrimary,
         onError: Colors.white,
       ),
-      
+
       // App Bar Theme
       appBarTheme: AppBarTheme(
         backgroundColor: surfaceColor,
@@ -164,27 +162,19 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: titleLarge,
-        iconTheme: const IconThemeData(
-          color: textPrimary,
-          size: 24,
-        ),
-        actionsIconTheme: const IconThemeData(
-          color: textPrimary,
-          size: 24,
-        ),
+        iconTheme: const IconThemeData(color: textPrimary, size: 24),
+        actionsIconTheme: const IconThemeData(color: textPrimary, size: 24),
       ),
-      
+
       // Card Theme
       cardTheme: CardThemeData(
         color: surfaceColor,
         elevation: 2,
         shadowColor: shadowColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(8),
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -192,39 +182,33 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 2,
           shadowColor: shadowColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle: buttonText,
         ),
       ),
-      
+
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryColor,
           side: const BorderSide(color: primaryColor, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle: buttonText.copyWith(color: primaryColor),
         ),
       ),
-      
+
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           textStyle: buttonText.copyWith(color: primaryColor),
         ),
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -249,44 +233,41 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: errorColor, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         labelStyle: bodyMedium.copyWith(color: textSecondary),
         hintStyle: bodyMedium.copyWith(color: textTertiary),
         errorStyle: bodySmall.copyWith(color: errorColor),
       ),
-      
+
       // Chip Theme
       chipTheme: ChipThemeData(
+        shape: StadiumBorder(side: BorderSide(color: textTertiary)),
         backgroundColor: backgroundColor,
         selectedColor: primaryColor,
         disabledColor: borderColorLight,
         labelStyle: bodySmall,
+        // change the text color to while if it is selected
         secondaryLabelStyle: bodySmall.copyWith(color: Colors.white),
+        showCheckmark: false,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
       ),
-      
+
       // Divider Theme
       dividerTheme: const DividerThemeData(
         color: borderColor,
         thickness: 1,
         space: 1,
       ),
-      
+
       // Icon Theme
-      iconTheme: const IconThemeData(
-        color: textSecondary,
-        size: 24,
-      ),
-      
+      iconTheme: const IconThemeData(color: textSecondary, size: 24),
+
       // Primary Icon Theme
-      primaryIconTheme: const IconThemeData(
-        color: primaryColor,
-        size: 24,
-      ),
-      
+      primaryIconTheme: const IconThemeData(color: primaryColor, size: 24),
+
       // Text Theme
       textTheme: TextTheme(
         headlineLarge: headlineLarge,
@@ -302,7 +283,7 @@ class AppTheme {
         labelMedium: labelMedium,
         labelSmall: labelSmall,
       ),
-      
+
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceColor,
@@ -311,7 +292,7 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
-      
+
       // Floating Action Button Theme
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
@@ -319,76 +300,31 @@ class AppTheme {
         elevation: 4,
         shape: CircleBorder(),
       ),
-      
+
       // Dialog Theme
       dialogTheme: DialogThemeData(
         backgroundColor: surfaceColor,
         elevation: 8,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         titleTextStyle: titleLarge,
         contentTextStyle: bodyMedium,
       ),
-      
+
       // Snackbar Theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: textPrimary,
         contentTextStyle: bodyMedium.copyWith(color: Colors.white),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         behavior: SnackBarBehavior.floating,
       ),
-      
-      // Switch Theme
-      switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return primaryColor;
-          }
-          return textTertiary;
-        }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return primaryColor.withOpacity(0.3);
-          }
-          return borderColor;
-        }),
-      ),
-      
-      // Checkbox Theme
-      checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return primaryColor;
-          }
-          return Colors.transparent;
-        }),
-        checkColor: MaterialStateProperty.all(Colors.white),
-        side: const BorderSide(color: borderColor, width: 2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
-      ),
-      
-      // Radio Theme
-      radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return primaryColor;
-          }
-          return textTertiary;
-        }),
-      ),
-      
+
       // Progress Indicator Theme
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: primaryColor,
         linearTrackColor: borderColor,
         circularTrackColor: borderColor,
       ),
-      
+
       // List Tile Theme
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -400,9 +336,8 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
       ),
-      
+
       // Theme Extensions
-      
     );
   }
 
@@ -417,12 +352,10 @@ class AppTheme {
         secondary: secondaryColor,
         secondaryContainer: Color(0xFF064E3B),
         surface: Color(0xFF1F2937),
-        background: Color(0xFF111827),
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white,
-        onBackground: Colors.white,
         onError: Colors.white,
       ),
       textTheme: TextTheme(
@@ -439,9 +372,8 @@ class AppTheme {
         labelMedium: labelMedium.copyWith(color: Colors.white),
         labelSmall: labelSmall.copyWith(color: Color(0xFF9CA3AF)),
       ),
-      
+
       // Theme Extensions
-      
     );
   }
 }
