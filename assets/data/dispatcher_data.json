@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "planDate": "2025-09-17T00:00:00.000Z",
+    "depotTimezone": "Asia/Dubai",
+    "depot": { "lat": 25.2048, "lon": 55.2708 }
+  },
+  "vehicles": [
+    {
+      "id": "v01",
+      "name": "Sprinter Van",
+      "capacity": { "weight": 1500, "volume": 12.0 },
+      "fillRate": 0.85
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-001",
+      "customerId": "CUST-A",
+      "codAmount": 150.75,
+      "isDiscounted": true,
+      "items": [
+        { "sku": "SKU-TV", "name": "65-inch 4K TV", "quantity": 1, "weight": 25, "volume": 0.4, "serialTracked": false }
+      ]
+    },
+    {
+      "id": "ORD-002",
+      "customerId": "CUST-B",
+      "codAmount": 0.00,
+      "isDiscounted": false,
+      "items": [
+        { "sku": "SKU-LAPTOP", "name": "Laptop Pro", "quantity": 2, "weight": 2.5, "volume": 0.01, "serialTracked": true }
+      ]
+    },
+    {
+      "id": "ORD-003",
+      "customerId": "CUST-C",
+      "codAmount": 75.50,
+      "isDiscounted": false,
+      "items": [
+        { "sku": "SKU-PHONE", "name": "Smartphone", "quantity": 1, "weight": 0.2, "volume": 0.001, "serialTracked": true },
+        { "sku": "SKU-CASE", "name": "Phone Case", "quantity": 3, "weight": 0.05, "volume": 0.0001, "serialTracked": false }
+      ]
+    },
+    {
+      "id": "ORD-004",
+      "customerId": "CUST-D",
+      "codAmount": 200.00,
+      "isDiscounted": true,
+      "items": [
+        { "sku": "SKU-FURNITURE", "name": "Office Chair", "quantity": 1, "weight": 15, "volume": 0.8, "serialTracked": false }
+      ]
+    }
+  ],
+  "customers": [
+    { "id": "CUST-A", "name": "Alice Martin", "location": { "lat": 25.22, "lon": 55.28 } },
+    { "id": "CUST-B", "name": "Bob Johnson", "location": { "lat": 25.18, "lon": 55.25 } },
+    { "id": "CUST-C", "name": "Carol Davis", "location": { "lat": 25.15, "lon": 55.30 } },
+    { "id": "CUST-D", "name": "David Wilson", "location": { "lat": 25.25, "lon": 55.22 } }
+  ]
+}

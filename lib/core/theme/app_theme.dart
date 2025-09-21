@@ -23,6 +23,9 @@ class AppTheme {
   static const Color borderColor = Color.fromARGB(255, 219, 227, 238);
   static const Color borderColorLight = Color(0xFF9CA3AF);
 
+  // box background
+  static const Color boxBackground = Color.fromARGB(255, 233, 234, 238);
+
   // Shadow Colors
   static const Color shadowColor = Color(0x1A000000);
 

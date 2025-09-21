@@ -15,11 +15,6 @@ class OrderPage extends StatefulWidget {
 
 class _OrderPageState extends State<OrderPage> {
   int _selectedIndex = 0;
-  final List<String> _filterOptions = [
-    'All Orders',
-    'Discounted',
-    'Not Discounted',
-  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(

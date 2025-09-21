@@ -1,5 +1,4 @@
 import 'package:dispatcher/core/theme/app_theme.dart';
-import 'package:dispatcher/core/widgets/custom_button.dart';
 import 'package:dispatcher/core/widgets/custom_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
