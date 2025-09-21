@@ -1,12 +1,12 @@
 import 'package:injectable/injectable.dart' as injectable;
 
-import '../data-source/dispatcher_data_source.dart';
 import '../../domain/entity/order.dart';
 import '../../domain/repository/order_repository.dart';
+import '../data-source/order_data_source.dart';
 
 @injectable.Injectable(as: OrderRepository)
 class OrderRepositoryImpl implements OrderRepository {
-  final DispatcherDataSource _dataSource;
+  final OrderDataSource _dataSource;
   
   OrderRepositoryImpl(this._dataSource);
   

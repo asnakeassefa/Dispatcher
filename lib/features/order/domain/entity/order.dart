@@ -41,6 +41,28 @@ class OrderItem extends Equatable {
     );
   }
 
+  factory OrderItem.fromJson(Map<String, dynamic> json) {
+    return OrderItem(
+      sku: json['sku'] as String,
+      name: json['name'] as String,
+      quantity: json['quantity'] as int,
+      weight: (json['weight'] as num).toDouble(),
+      volume: (json['volume'] as num).toDouble(),
+      serialTracked: json['serialTracked'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'sku': sku,
+      'name': name,
+      'quantity': quantity,
+      'weight': weight,
+      'volume': volume,
+      'serialTracked': serialTracked,
+    };
+  }
+
   @override
   List<Object?> get props => [sku, name, quantity, weight, volume, serialTracked];
 }

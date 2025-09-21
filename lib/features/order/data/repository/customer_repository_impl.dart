@@ -1,12 +1,12 @@
 import 'package:injectable/injectable.dart' as injectable;
 
-import '../data-source/dispatcher_data_source.dart';
 import '../../domain/entity/customer.dart';
 import '../../domain/repository/customer_repository.dart';
+import '../data-source/customer_data_source.dart';
 
 @injectable.Injectable(as: CustomerRepository)
 class CustomerRepositoryImpl implements CustomerRepository {
-  final DispatcherDataSource _dataSource;
+  final CustomerDataSource _dataSource;
   
   CustomerRepositoryImpl(this._dataSource);
   
