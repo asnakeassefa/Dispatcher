@@ -2,11 +2,21 @@ import 'package:dispatcher/core/theme/app_theme.dart';
 import 'package:dispatcher/core/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 
+import '../../domain/model/order_with_customer.dart';
+
 class OrderCard extends StatelessWidget {
-  const OrderCard({super.key});
+  final OrderWithCustomer orderWithCustomer;
+  
+  const OrderCard({
+    super.key,
+    required this.orderWithCustomer,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final order = orderWithCustomer.order;
+    final customer = orderWithCustomer.customer;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -28,14 +38,21 @@ class OrderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Order #12345',
+                'Order #${order.id}',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              Text(
-                'Pending',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: order.isDiscounted ? Colors.green : Colors.orange,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  order.isDiscounted ? 'Discounted' : 'Regular',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -43,27 +60,87 @@ class OrderCard extends StatelessWidget {
           const SizedBox(height: 12),
           const Divider(height: 1, color: Colors.grey),
           const SizedBox(height: 12),
-          Text('Customer: ', style: Theme.of(context).textTheme.bodyLarge),
-          const SizedBox(height: 4),
-          Text(
-            'Location: 123 Main St, City, Country',
-            style: Theme.of(context).textTheme.bodyLarge,
+          
+          // Customer information
+          Row(
+            children: [
+              Text(
+                'Customer: ',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  customer?.name ?? 'Unknown Customer',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 4),
+          
+          // Location information
+          Row(
+            children: [
+              Text(
+                'Location: ',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  customer?.location != null 
+                    ? '${customer!.location.lat.toStringAsFixed(4)}, ${customer.location.lon.toStringAsFixed(4)}'
+                    : 'Location not available',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+          
           const SizedBox(height: 16),
           const Divider(height: 1, color: Colors.grey),
           const SizedBox(height: 12),
 
+          // Order details
           Row(
             children: [
-              Text(
-                'Size: 2.5 kg, 0.1 m³',
-                style: Theme.of(context).textTheme.bodyLarge,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Weight: ${order.totalWeight.toStringAsFixed(1)} kg',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Volume: ${order.totalVolume.toStringAsFixed(2)} m³',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
               ),
-
-              const SizedBox(width: 24),
-              Text(
-                'COD: \$120.0',
-                style: Theme.of(context).textTheme.bodyLarge,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'COD: \$${order.codAmount.toStringAsFixed(2)}',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Items: ${order.items.length}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -71,7 +148,14 @@ class OrderCard extends StatelessWidget {
           const SizedBox(height: 24),
           Center(
             child: CustomButton(
-              onPressed: (){},
+              onPressed: () {
+                // Navigate to order details
+                Navigator.pushNamed(
+                  context,
+                  '/order-detail',
+                  arguments: orderWithCustomer,
+                );
+              },
               text: "View Order Details",
               isLoading: false,
               height: 48,
