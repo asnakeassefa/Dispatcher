@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart' as injectable;
 
 import '../../domain/entity/trip.dart';
@@ -8,7 +6,6 @@ import '../../domain/repository/trip_planner_repository.dart';
 import '../../../order/domain/entity/order.dart';
 import '../data-source/trip_local_data_source.dart';
 import '../mapper/trip_mapper.dart';
-import '../model/trip_model.dart';
 import '../../../order/data/data-source/order_local_data_source.dart';
 
 @injectable.LazySingleton(as: TripPlannerRepository)

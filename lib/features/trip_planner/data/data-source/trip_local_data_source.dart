@@ -1,20 +1,21 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart' as injectable;
+import 'package:drift/drift.dart';
 
 import '../../../../core/exceptions/data_source_exceptions.dart';
+import '../../../../core/database/app_database.dart';
 import '../../domain/entity/vehicle.dart';
 import '../model/trip_model.dart';
 
 @injectable.injectable
 class TripLocalDataSource {
-  // Temporary in-memory storage for testing
-  static final List<TripModel> _trips = [];
+  final AppDatabase _database;
   
   // In-memory storage for vehicle usage tracking
   static final Map<String, VehicleStatus> _vehicleUsage = {};
 
-  TripLocalDataSource();
+  TripLocalDataSource(this._database);
 
   // Trip CRUD operations
   Future<TripModel> createTrip(TripModel tripModel) async {
@@ -22,11 +23,19 @@ class TripLocalDataSource {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
       
-      // Add to in-memory list
-      final newTrip = tripModel.copyWith(id: _trips.length + 1);
-      _trips.add(newTrip);
+      // Insert into database
+      final tripCompanion = TripTableCompanion.insert(
+        tripId: tripModel.tripId,
+        date: tripModel.date,
+        assignedVehicleId: Value(tripModel.assignedVehicleId),
+        assignedOrderIds: tripModel.assignedOrderIds,
+        statusIndex: tripModel.statusIndex,
+      );
       
-      return newTrip;
+      final insertedId = await _database.into(_database.tripTable).insert(tripCompanion);
+      
+      // Return the created trip model with the database ID
+      return tripModel.copyWith(id: insertedId);
     } catch (e) {
       throw DataSourceException('Failed to create trip: ${e.toString()}');
     }
@@ -36,7 +45,11 @@ class TripLocalDataSource {
     try {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
-      return List.from(_trips);
+      
+      final query = _database.select(_database.tripTable);
+      final trips = await query.get();
+      
+      return trips.map((trip) => TripModel.fromData(trip)).toList();
     } catch (e) {
       throw DataSourceException('Failed to get all trips: ${e.toString()}');
     }
@@ -47,7 +60,11 @@ class TripLocalDataSource {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
       
-      return _trips.where((trip) => trip.tripId == tripId).firstOrNull;
+      final query = _database.select(_database.tripTable)
+        ..where((t) => t.tripId.equals(tripId));
+      
+      final trip = await query.getSingleOrNull();
+      return trip != null ? TripModel.fromData(trip) : null;
     } catch (e) {
       throw DataSourceException('Failed to get trip by ID "$tripId": ${e.toString()}');
     }
@@ -58,13 +75,20 @@ class TripLocalDataSource {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
       
-      final index = _trips.indexWhere((trip) => trip.tripId == tripModel.tripId);
-      if (index != -1) {
-        _trips[index] = tripModel;
-        return tripModel;
-      } else {
-        throw DataSourceException('Trip not found: ${tripModel.tripId}');
-      }
+      final query = _database.update(_database.tripTable)
+        ..where((t) => t.tripId.equals(tripModel.tripId));
+      
+      final tripCompanion = TripTableCompanion(
+        tripId: Value(tripModel.tripId),
+        date: Value(tripModel.date),
+        assignedVehicleId: Value(tripModel.assignedVehicleId),
+        assignedOrderIds: Value(tripModel.assignedOrderIds),
+        statusIndex: Value(tripModel.statusIndex),
+        updatedAt: Value(DateTime.now()),
+      );
+      
+      await query.write(tripCompanion);
+      return tripModel;
     } catch (e) {
       throw DataSourceException('Failed to update trip: ${e.toString()}');
     }
@@ -75,7 +99,10 @@ class TripLocalDataSource {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
       
-      _trips.removeWhere((trip) => trip.tripId == tripId);
+      final query = _database.delete(_database.tripTable)
+        ..where((t) => t.tripId.equals(tripId));
+      
+      await query.go();
     } catch (e) {
       throw DataSourceException('Failed to delete trip "$tripId": ${e.toString()}');
     }
@@ -151,10 +178,12 @@ class TripLocalDataSource {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
       
-      return _trips.where((trip) => 
-        trip.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
-        trip.date.isBefore(endDate.add(const Duration(days: 1)))
-      ).toList();
+      final query = _database.select(_database.tripTable)
+        ..where((t) => t.date.isBiggerOrEqualValue(startDate) & 
+                      t.date.isSmallerOrEqualValue(endDate));
+      
+      final trips = await query.get();
+      return trips.map((trip) => TripModel.fromData(trip)).toList();
     } catch (e) {
       throw DataSourceException('Failed to get trips by date range: ${e.toString()}');
     }
@@ -165,7 +194,11 @@ class TripLocalDataSource {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
       
-      return _trips.where((trip) => trip.statusIndex == statusIndex).toList();
+      final query = _database.select(_database.tripTable)
+        ..where((t) => t.statusIndex.equals(statusIndex));
+      
+      final trips = await query.get();
+      return trips.map((trip) => TripModel.fromData(trip)).toList();
     } catch (e) {
       throw DataSourceException('Failed to get trips by status: ${e.toString()}');
     }
@@ -176,7 +209,11 @@ class TripLocalDataSource {
       // Simulate async operation
       await Future.delayed(const Duration(milliseconds: 100));
       
-      return _trips.where((trip) => trip.assignedVehicleId == vehicleId).toList();
+      final query = _database.select(_database.tripTable)
+        ..where((t) => t.assignedVehicleId.equals(vehicleId));
+      
+      final trips = await query.get();
+      return trips.map((trip) => TripModel.fromData(trip)).toList();
     } catch (e) {
       throw DataSourceException('Failed to get trips by vehicle ID: ${e.toString()}');
     }
