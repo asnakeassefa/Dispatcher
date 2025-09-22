@@ -76,7 +76,6 @@ _i174.GetIt $initGetIt(
   gh.factory<_i88.OrderDataSource>(() => _i88.OrderDataSource());
   gh.factory<_i955.CustomerDataSource>(() => _i955.CustomerDataSource());
   gh.factory<_i373.OrderCustomerMerger>(() => _i373.OrderCustomerMerger());
-  gh.factory<_i263.TripLocalDataSource>(() => _i263.TripLocalDataSource());
   gh.factory<_i485.OrderLocalDataSource>(() => _i485.OrderLocalDataSource());
   gh.singleton<_i982.AppDatabase>(() => databaseModule.appDatabase);
   gh.factory<_i18.OrderRepository>(
@@ -93,6 +92,9 @@ _i174.GetIt $initGetIt(
   );
   gh.factory<_i849.CustomerRepository>(
     () => _i385.CustomerRepositoryImpl(gh<_i955.CustomerDataSource>()),
+  );
+  gh.factory<_i263.TripLocalDataSource>(
+    () => _i263.TripLocalDataSource(gh<_i982.AppDatabase>()),
   );
   gh.lazySingleton<_i721.TripPlannerRepository>(
     () => _i793.TripPlanRepositoryImpl(
