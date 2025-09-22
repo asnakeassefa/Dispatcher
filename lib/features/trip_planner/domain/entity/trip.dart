@@ -1,136 +1,65 @@
 import 'package:equatable/equatable.dart';
 
-enum StopStatus {
-  pending,
-  inTransit,
+import '../../../order/domain/entity/order.dart';
+import 'vehicle.dart';
+
+enum TripStatus {
+  planned,
+  inProgress,
   completed,
-  failed,
-}
-
-extension StopStatusExtension on StopStatus {
-  String get displayName {
-    switch (this) {
-      case StopStatus.pending:
-        return 'Pending';
-      case StopStatus.inTransit:
-        return 'In Transit';
-      case StopStatus.completed:
-        return 'Completed';
-      case StopStatus.failed:
-        return 'Failed';
-    }
-  }
-
-  bool canTransitionTo(StopStatus newStatus) {
-    const allowedTransitions = {
-      StopStatus.pending: [StopStatus.inTransit, StopStatus.failed],
-      StopStatus.inTransit: [StopStatus.completed, StopStatus.failed],
-      StopStatus.completed: [],
-      StopStatus.failed: [],
-    };
-    
-    return allowedTransitions[this]?.contains(newStatus) ?? false;
-  }
-}
-
-class Stop extends Equatable {
-  final String orderId;
-  final StopStatus status;
-  final double? collectedCodAmount;
-  final Map<String, String>? serialNumbers; // SKU -> Serial number mapping
-  final DateTime? startedAt;
-  final DateTime? completedAt;
-  final String? failureReason;
-
-  const Stop({
-    required this.orderId,
-    required this.status,
-    this.collectedCodAmount,
-    this.serialNumbers,
-    this.startedAt,
-    this.completedAt,
-    this.failureReason,
-  });
-
-  Stop copyWith({
-    String? orderId,
-    StopStatus? status,
-    double? collectedCodAmount,
-    Map<String, String>? serialNumbers,
-    DateTime? startedAt,
-    DateTime? completedAt,
-    String? failureReason,
-  }) {
-    return Stop(
-      orderId: orderId ?? this.orderId,
-      status: status ?? this.status,
-      collectedCodAmount: collectedCodAmount ?? this.collectedCodAmount,
-      serialNumbers: serialNumbers ?? this.serialNumbers,
-      startedAt: startedAt ?? this.startedAt,
-      completedAt: completedAt ?? this.completedAt,
-      failureReason: failureReason ?? this.failureReason,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-        orderId,
-        status,
-        collectedCodAmount,
-        serialNumbers,
-        startedAt,
-        completedAt,
-        failureReason,
-      ];
+  cancelled,
 }
 
 class Trip extends Equatable {
   final String id;
-  final String vehicleId;
-  final List<Stop> stops;
-  final DateTime createdAt;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
+  final DateTime date;
+  final Vehicle? assignedVehicle;
+  final List<Order> assignedOrders;
+  final TripStatus status;
 
   const Trip({
     required this.id,
-    required this.vehicleId,
-    required this.stops,
-    required this.createdAt,
-    this.startedAt,
-    this.completedAt,
+    required this.date,
+    this.assignedVehicle,
+    required this.assignedOrders,
+    required this.status,
   });
 
-  double get totalCodAmount => stops.fold(0.0, (sum, stop) => sum + (stop.collectedCodAmount ?? 0.0));
-  
-  int get completedStops => stops.where((stop) => stop.status == StopStatus.completed).length;
-  int get failedStops => stops.where((stop) => stop.status == StopStatus.failed).length;
-  int get pendingStops => stops.where((stop) => stop.status == StopStatus.pending).length;
-  int get inTransitStops => stops.where((stop) => stop.status == StopStatus.inTransit).length;
+  // Helper getters
+  int get totalOrders => assignedOrders.length;
+  double get totalWeight => assignedOrders.fold(0.0, (sum, order) => sum + order.totalWeight);
+  double get totalVolume => assignedOrders.fold(0.0, (sum, order) => sum + order.totalVolume);
+  double get totalCodAmount => assignedOrders.fold(0.0, (sum, order) => sum + order.codAmount);
 
-  double get completionRate => stops.isEmpty ? 0.0 : completedStops / stops.length;
-  
-  bool get isCompleted => stops.isNotEmpty && stops.every((stop) => 
-      stop.status == StopStatus.completed || stop.status == StopStatus.failed);
-  
+  // Check if trip can accommodate more orders
+  bool canAccommodateOrder(Order order, {double? maxWeight, double? maxVolume}) {
+    if (assignedVehicle == null) return false;
+    
+    final newTotalWeight = totalWeight + order.totalWeight;
+    final newTotalVolume = totalVolume + order.totalVolume;
+    
+    if (maxWeight != null && newTotalWeight > maxWeight) return false;
+    if (maxVolume != null && newTotalVolume > maxVolume) return false;
+    
+    return true;
+  }
+
   Trip copyWith({
     String? id,
-    String? vehicleId,
-    List<Stop>? stops,
-    DateTime? createdAt,
-    DateTime? startedAt,
-    DateTime? completedAt,
+    DateTime? date,
+    Vehicle? assignedVehicle,
+    List<Order>? assignedOrders,
+    TripStatus? status,
   }) {
     return Trip(
       id: id ?? this.id,
-      vehicleId: vehicleId ?? this.vehicleId,
-      stops: stops ?? this.stops,
-      createdAt: createdAt ?? this.createdAt,
-      startedAt: startedAt ?? this.startedAt,
-      completedAt: completedAt ?? this.completedAt,
+      date: date ?? this.date,
+      assignedVehicle: assignedVehicle ?? this.assignedVehicle,
+      assignedOrders: assignedOrders ?? this.assignedOrders,
+      status: status ?? this.status,
     );
   }
 
   @override
-  List<Object?> get props => [id, vehicleId, stops, createdAt, startedAt, completedAt];
+  List<Object?> get props => [id, date, assignedVehicle, assignedOrders, status];
 }

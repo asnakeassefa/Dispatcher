@@ -1,69 +1,60 @@
 import 'package:equatable/equatable.dart';
 
-class Capacity extends Equatable {
-  final double weight; // kg
-  final double volume; // m³
-
-  const Capacity({
-    required this.weight,
-    required this.volume,
-  });
-
-  Capacity copyWith({
-    double? weight,
-    double? volume,
-  }) {
-    return Capacity(
-      weight: weight ?? this.weight,
-      volume: volume ?? this.volume,
-    );
-  }
-
-  @override
-  List<Object?> get props => [weight, volume];
-
-  @override
-  String toString() => 'Capacity(weight: ${weight}kg, volume: ${volume}m³)';
+enum VehicleStatus {
+  available,
+  assigned,
+  inUse,
+  maintenance,
+  outOfService,
 }
 
 class Vehicle extends Equatable {
   final String id;
-  final String name;
-  final Capacity capacity;
-  final double fillRate; // 0.0 to 1.0
+  final String plateNumber;
+  final double capacity; // in kg
+  final double volumeCapacity; // in m³
+  final String driverName;
+  final VehicleStatus status;
 
   const Vehicle({
     required this.id,
-    required this.name,
+    required this.plateNumber,
     required this.capacity,
-    required this.fillRate,
+    required this.volumeCapacity,
+    required this.driverName,
+    required this.status,
   });
 
-  double get effectiveWeightCapacity => capacity.weight * fillRate;
-  double get effectiveVolumeCapacity => capacity.volume * fillRate;
+  // Helper getters
+  bool get isAvailable => status == VehicleStatus.available;
+  bool get isAssigned => status == VehicleStatus.assigned;
+  bool get isInUse => status == VehicleStatus.inUse;
+  bool get isInMaintenance => status == VehicleStatus.maintenance;
+  bool get isOutOfService => status == VehicleStatus.outOfService;
 
-  Capacity get effectiveCapacity => Capacity(
-    weight: effectiveWeightCapacity,
-    volume: effectiveVolumeCapacity,
-  );
+  // Check if vehicle can carry the given weight and volume
+  bool canCarry({required double weight, required double volume}) {
+    return weight <= capacity && volume <= volumeCapacity && isAvailable;
+  }
 
   Vehicle copyWith({
     String? id,
-    String? name,
-    Capacity? capacity,
-    double? fillRate,
+    String? plateNumber,
+    double? capacity,
+    double? volumeCapacity,
+    String? driverName,
+    VehicleStatus? status,
   }) {
     return Vehicle(
       id: id ?? this.id,
-      name: name ?? this.name,
+      plateNumber: plateNumber ?? this.plateNumber,
       capacity: capacity ?? this.capacity,
-      fillRate: fillRate ?? this.fillRate,
+      volumeCapacity: volumeCapacity ?? this.volumeCapacity,
+      driverName: driverName ?? this.driverName,
+      status: status ?? this.status,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, capacity, fillRate];
-
-  @override
-  String toString() => 'Vehicle(id: $id, name: $name, capacity: $capacity, fillRate: $fillRate)';
+  List<Object?> get props => [id, plateNumber, capacity, volumeCapacity, driverName, status];
 }

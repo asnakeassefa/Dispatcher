@@ -3,6 +3,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'core/di/injection.dart';
+import 'core/database/app_database.dart';
 import 'app.dart';
 
 void main() async {
@@ -10,6 +11,11 @@ void main() async {
   
   // Initialize dependency injection
   await configureInjection("prod");
+  
+  // Initialize database
+  final database = getIt<AppDatabase>();
+  await database.customStatement('PRAGMA foreign_keys = ON');
+  
   // Initialize HydratedBloc storage
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: await getApplicationDocumentsDirectory(),
