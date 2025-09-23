@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/state/app_state_manager.dart';
 import '../../domain/model/order_with_customer.dart';
+import '../pages/order_detail_page.dart';
 
 class OrderCard extends StatelessWidget {
   final OrderWithCustomer orderWithCustomer;
@@ -13,6 +16,24 @@ class OrderCard extends StatelessWidget {
     required this.orderWithCustomer,
     this.onTap,
   });
+
+  void _navigateToOrderDetail(BuildContext context) {
+    // Save detail page state with order data
+    context.read<AppStateManager>().updateDetailPageWithOrderData(
+      DetailPageType.orderDetail,
+      orderId: orderWithCustomer.order.id,
+      orderData: orderWithCustomer.toJson(), // Save the complete order data
+    );
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => OrderDetailPage(orderWithCustomer: orderWithCustomer),
+      ),
+    ).then((_) {
+      // Clear detail page state when returning
+      context.read<AppStateManager>().updateDetailPage(DetailPageType.none);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +51,7 @@ class OrderCard extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap ?? () => _navigateToOrderDetail(context),
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(

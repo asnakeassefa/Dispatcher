@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ionicons/ionicons.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/filter_chip_button.dart';
 import '../../domain/entity/trip.dart';
@@ -11,6 +9,7 @@ import '../bloc/trip_planner_state.dart';
 import '../widgets/trip_card.dart';
 import 'create_trip_page.dart';
 import 'trip_detail_page.dart';
+import '../../../../core/state/app_state_manager.dart';
 
 class TripsPage extends StatefulWidget {
   const TripsPage({super.key});
@@ -70,17 +69,40 @@ class _TripsPageState extends State<TripsPage> {
     }).toList();
   }
 
-  void _navigateToTripDetail(String tripId) async {
-    final result = await Navigator.of(context).push(
+  void _navigateToTripDetail(String tripId) {
+    // Save detail page state
+    context.read<AppStateManager>().updateDetailPage(
+      DetailPageType.tripDetail,
+      tripId: tripId,
+    );
+    
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => TripDetailPage(tripId: tripId),
       ),
-    );
-    
-    // Always refresh when returning from trip detail to ensure state is up to date
-    if (mounted) {
+    ).then((_) {
+      // Clear detail page state when returning
+      context.read<AppStateManager>().updateDetailPage(DetailPageType.none);
       context.read<TripPlannerCubit>().loadTrips();
-    }
+    });
+  }
+
+  void _navigateToCreateTrip() {
+    // Save detail page state
+    context.read<AppStateManager>().updateDetailPage(DetailPageType.createTrip);
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: context.read<TripPlannerCubit>(),
+          child: const CreateTripPage(),
+        ),
+      ),
+    ).then((_) {
+      // Clear detail page state when returning
+      context.read<AppStateManager>().updateDetailPage(DetailPageType.none);
+      context.read<TripPlannerCubit>().loadTrips();
+    });
   }
 
   @override
@@ -259,11 +281,7 @@ class _TripsPageState extends State<TripsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const CreateTripPage(),
-            ),
-          );
+          _navigateToCreateTrip();
         },
         child: const Icon(Icons.add),
       ),

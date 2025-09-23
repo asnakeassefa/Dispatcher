@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ionicons/ionicons.dart';
 
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/filter_chip_button.dart';

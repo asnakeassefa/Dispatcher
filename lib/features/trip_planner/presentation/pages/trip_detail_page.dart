@@ -3,15 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../../../core/theme/app_theme.dart';
-import '../../domain/entity/trip.dart';
-import '../../domain/entity/vehicle.dart';
-import '../../../order/domain/entity/order.dart';
-import '../../../order/domain/entity/customer.dart';
+import '../../../../core/utils/timezone_helper.dart';
+import '../../../../core/state/app_state_manager.dart'; // Import the state manager
 import '../bloc/trip_planner_cubit.dart';
 import '../bloc/trip_planner_state.dart';
+import '../../domain/entity/trip.dart';
+import '../../domain/entity/vehicle.dart';
 import '../pages/assign_orders_page.dart';
 import '../../../trip_execution/presentation/pages/trip_execution_page.dart';
-import '../../../../core/utils/timezone_helper.dart';
 
 class TripDetailPage extends StatefulWidget {
   final String tripId;
@@ -798,7 +797,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
       case TripStatus.planned:
         return ElevatedButton.icon(
           onPressed: () {
-            _navigateToTripExecution(context, trip.id);
+            _navigateToTripExecution();
           },
           icon: const Icon(Icons.play_arrow),
           label: const Text('Start Trip'),
@@ -815,7 +814,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
       case TripStatus.inProgress:
         return ElevatedButton.icon(
           onPressed: () {
-            _navigateToTripExecution(context, trip.id);
+            _navigateToTripExecution();
           },
           icon: const Icon(Icons.directions_car),
           label: const Text('Continue Trip'),
@@ -832,7 +831,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
       case TripStatus.completed:
         return ElevatedButton.icon(
           onPressed: () {
-            _navigateToTripExecution(context, trip.id);
+            _navigateToTripExecution();
           },
           icon: const Icon(Icons.visibility),
           label: const Text('View Trip'),
@@ -864,41 +863,36 @@ class _TripDetailPageState extends State<TripDetailPage> {
   }
 
   // Helper method to navigate to trip execution and handle return
-  Future<void> _navigateToTripExecution(BuildContext context, String tripId) async {
-    final tripStatusChanged = await Navigator.of(context).push(
+  Future<void> _navigateToTripExecution() async {
+    // Save detail page state
+    context.read<AppStateManager>().updateDetailPage(
+      DetailPageType.tripExecution,
+      tripExecutionId: widget.tripId,
+    );
+
+    final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (context) => TripExecutionPage(tripId: tripId),
+        builder: (context) => TripExecutionPage(tripId: widget.tripId),
       ),
     );
-    
-    // Refresh when returning from trip execution, especially if status changed
-    if (context.mounted) {
-      if (tripStatusChanged == true) {
-        // Show loading indicator only if status changed
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Text('Updating trip status...'),
-              ],
-            ),
-            duration: Duration(seconds: 1),
-            backgroundColor: AppTheme.primaryColor,
-          ),
-        );
-      }
-      
-      // Always refresh the trips data
-      context.read<TripPlannerCubit>().loadTrips();
+
+    // Clear detail page state when returning
+    context.read<AppStateManager>().updateDetailPage(
+      DetailPageType.tripDetail,
+      tripId: widget.tripId,
+    );
+
+    if (mounted) {
+      // Show loading snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Refreshing trip data...'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      // Refresh trip data
+      await context.read<TripPlannerCubit>().loadTrips();
     }
   }
 
