@@ -11,6 +11,7 @@ import '../../domain/entity/trip.dart';
 import '../../domain/entity/vehicle.dart';
 import '../pages/assign_orders_page.dart';
 import '../../../trip_execution/presentation/pages/trip_execution_page.dart';
+import '../widgets/trip_map_widget.dart';
 
 class TripDetailPage extends StatefulWidget {
   final String tripId;
@@ -237,6 +238,12 @@ class _TripDetailPageState extends State<TripDetailPage> {
             
             // Orders Information Card
             _buildOrdersCard(context, trip),
+            
+            // ✅ ADD THE MAP SECTION HERE
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: _buildMapSection(trip),
+            ),
             
             // Action Buttons
             _buildActionButtons(context, trip),
@@ -1088,6 +1095,120 @@ class _TripDetailPageState extends State<TripDetailPage> {
     final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  Widget _buildMapSection(Trip trip) {
+    if (trip.assignedOrders.isEmpty) {
+      return Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.map_outlined,
+                size: 48,
+                color: Colors.grey,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'No orders assigned to display route',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Demo depot location (Dubai)
+    final depot = {
+      'lat': 25.2048,
+      'lon': 55.2708,
+    };
+
+    // Demo customer locations around Dubai
+    final demoStops = [
+      {'lat': 25.22, 'lon': 55.28},   // Stop 1
+      {'lat': 25.18, 'lon': 55.25},   // Stop 2
+      {'lat': 25.19, 'lon': 55.30},   // Stop 3
+      {'lat': 25.21, 'lon': 55.26},   // Stop 4
+      {'lat': 25.17, 'lon': 55.27},   // Stop 5
+    ];
+
+    // Use demo stops based on number of assigned orders
+    final stops = demoStops.take(trip.assignedOrders.length).map((stop) => {
+      'location': {
+        'lat': stop['lat'],
+        'lon': stop['lon'],
+      }
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.map_outlined,
+              color: AppTheme.primaryColor,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Route Overview (${stops.length} stops)',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        TripMapWidget(
+          depot: depot,
+          stops: stops,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue.shade200),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: Colors.blue.shade700,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Demo route showing ${stops.length} stops around Dubai',
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
