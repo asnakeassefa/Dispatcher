@@ -1,13 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/filter_chip_button.dart';
+import '../../domain/model/order_with_customer.dart';
 import '../bloc/order_cubit.dart';
 import '../bloc/order_state.dart';
-import '../widgets/filter_button.dart';
 import '../widgets/order_card.dart';
+import 'order_detail_page.dart';
 
 class OrderPage extends StatefulWidget {
   const OrderPage({super.key});
@@ -23,8 +24,10 @@ class _OrderPageState extends State<OrderPage> {
   @override
   void initState() {
     super.initState();
-    // Don't call loadOrdersWithCustomers here - let the cubit handle it
-    // The cubit will automatically load the saved filter state
+    // Load orders when the page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrderCubit>().loadOrdersWithCustomers();
+    });
   }
 
   @override
@@ -59,7 +62,7 @@ class _OrderPageState extends State<OrderPage> {
     });
   }
 
-  List<dynamic> _filterOrdersBySearch(List<dynamic> orders) {
+  List<OrderWithCustomer> _filterOrdersBySearch(List<OrderWithCustomer> orders) {
     if (_searchQuery.isEmpty) return orders;
     
     return orders.where((orderWithCustomer) {
@@ -67,8 +70,7 @@ class _OrderPageState extends State<OrderPage> {
       final customer = orderWithCustomer.customer;
       
       return order.id.toLowerCase().contains(_searchQuery) ||
-             order.customerId.toLowerCase().contains(_searchQuery) ||
-             (customer?.name.toLowerCase().contains(_searchQuery) ?? false);
+             customer?.name.toLowerCase().contains(_searchQuery) == true;
     }).toList();
   }
 
@@ -76,10 +78,9 @@ class _OrderPageState extends State<OrderPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Orders',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+        title: const Text('Orders'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -87,170 +88,163 @@ class _OrderPageState extends State<OrderPage> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Search box
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: CustomTextField(
-                controller: _searchController,
-                isObscure: false,
-                headerText: '',
-                hintText: 'Search by order ID, customer name, etc.',
-                prefixIcon: Ionicons.search,
-                keyboardType: TextInputType.text,
-                maxLines: 1,
-                onChanged: _onSearchChanged,
-                validator: (value) {
-                  return null; // Remove validation for search
-                },
+      body: BlocConsumer<OrderCubit, OrderState>(
+        listener: (context, state) {
+          if (state is OrderError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
               ),
-            ),
-            // Line break
-            const Divider(height: 1, color: Colors.grey),
-        
-            // Filter by discount status
-            const SizedBox(height: 8),
-            // Create horizontal list of filter chips
-            BlocBuilder<OrderCubit, OrderState>(
-              builder: (context, state) {
-                final currentFilter = state is OrderLoaded ? state.currentFilter : OrderFilter.all;
-                
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      FillterButton(
-                        isSelected: currentFilter.type == OrderFilterType.all,
-                        onTap: () => _onFilterChanged(OrderFilter.all),
-                        text: OrderFilter.all.displayName,
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is OrderLoading) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading orders...'),
+                ],
+              ),
+            );
+          }
+
+          if (state is OrderLoaded) {
+            final filteredOrders = _filterOrdersBySearch(state.ordersWithCustomer);
+            
+            return Column(
+              children: [
+                // Search and filter section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                      const SizedBox(width: 8),
-                      FillterButton(
-                        isSelected: currentFilter.type == OrderFilterType.discounted,
-                        onTap: () => _onFilterChanged(OrderFilter.discounted),
-                        text: OrderFilter.discounted.displayName,
-                      ),
-                      const SizedBox(width: 8),
-                      FillterButton(
-                        isSelected: currentFilter.type == OrderFilterType.notDiscounted,
-                        onTap: () => _onFilterChanged(OrderFilter.notDiscounted),
-                        text: OrderFilter.notDiscounted.displayName,
-                      ),
-                      const SizedBox(width: 8),
                     ],
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            // Orders list
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 16),
-            
-            // BlocBuilder for orders
-            Expanded(
-              child: BlocBuilder<OrderCubit, OrderState>(
-                builder: (context, state) {
-                  if (state is OrderLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  
-                  if (state is OrderError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Error loading orders',
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            state.message,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _refreshWithCurrentFilter,
-                            child: const Text('Retry'),
-                          ),
-                        ],
+                  child: Column(
+                    children: [
+                      // Search bar
+                      CustomTextField(
+                        controller: _searchController,
+                        hintText: 'Search orders...',
+                        prefixIcon: Icons.search,
+                        onChanged: _onSearchChanged,
+                        isObscure: false,
+                        headerText: 'Search orders...',
                       ),
-                    );
-                  }
-                  
-                  if (state is OrderLoaded) {
-                    final filteredOrders = _filterOrdersBySearch(state.ordersWithCustomer);
-                    
-                    if (filteredOrders.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.inbox_outlined,
-                              size: 64,
-                              color: Theme.of(context).colorScheme.outline,
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Filter chips
+                      BlocBuilder<OrderCubit, OrderState>(
+                        builder: (context, state) {
+                          final currentFilter = state is OrderLoaded ? state.currentFilter : OrderFilter.all;
+                          
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                OrderFilterChip(
+                                  label: 'All Orders',
+                                  isSelected: currentFilter.type == OrderFilterType.all,
+                                  onTap: () => _onFilterChanged(OrderFilter.all),
+                                  type: OrderFilterType.all,
+                                ),
+                                const SizedBox(width: 12),
+                                OrderFilterChip(
+                                  label: 'Discounted',
+                                  isSelected: currentFilter.type == OrderFilterType.discounted,
+                                  onTap: () => _onFilterChanged(OrderFilter.discounted),
+                                  type: OrderFilterType.discounted,
+                                ),
+                                const SizedBox(width: 12),
+                                OrderFilterChip(
+                                  label: 'Regular',
+                                  isSelected: currentFilter.type == OrderFilterType.notDiscounted,
+                                  onTap: () => _onFilterChanged(OrderFilter.notDiscounted),
+                                  type: OrderFilterType.notDiscounted,
+                                  
+                                ),
+                                const SizedBox(width: 16),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isNotEmpty 
-                                ? 'No orders found for "$_searchQuery"'
-                                : 'No orders available',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _searchQuery.isNotEmpty
-                                ? 'Try adjusting your search terms'
-                                : 'Pull to refresh to load orders',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    
-                    return RefreshIndicator(
-                      onRefresh: _refreshWithCurrentFilter,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: ListView.separated(
-                          separatorBuilder: (context, index) {
-                            return const SizedBox(height: 10);
-                          },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Orders list
+                Expanded(
+                  child: filteredOrders.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No orders found',
+                                style: Theme.of(context).textTheme.headlineSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _searchQuery.isNotEmpty
+                                    ? 'Try adjusting your search'
+                                    : 'No orders available',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: filteredOrders.length,
                           itemBuilder: (context, index) {
                             final orderWithCustomer = filteredOrders[index];
-                            return OrderCard(
-                              orderWithCustomer: orderWithCustomer,
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: OrderCard(
+                                orderWithCustomer: orderWithCustomer,
+                                onTap: () {
+                                  // Navigate to order details
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => OrderDetailPage(
+                                        orderWithCustomer: orderWithCustomer,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             );
                           },
-                          itemCount: filteredOrders.length,
                         ),
-                      ),
-                    );
-                  }
-                  
-                  return const Center(
-                    child: Text('No data available'),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+                ),
+              ],
+            );
+          }
+
+          return const Center(
+            child: Text('No order data available'),
+          );
+        },
       ),
     );
   }
