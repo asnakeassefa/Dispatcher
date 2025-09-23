@@ -1,17 +1,17 @@
 import 'package:injectable/injectable.dart' as injectable;
 
+import '../../../order/data/data-source/order_data_source.dart';
 import '../../domain/entity/trip.dart';
 import '../../domain/entity/vehicle.dart';
 import '../../domain/repository/trip_planner_repository.dart';
 import '../../../order/domain/entity/order.dart';
 import '../data-source/trip_local_data_source.dart';
 import '../mapper/trip_mapper.dart';
-import '../../../order/data/data-source/order_local_data_source.dart';
 
 @injectable.LazySingleton(as: TripPlannerRepository)
 class TripPlanRepositoryImpl implements TripPlannerRepository {
   final TripLocalDataSource _localDataSource;
-  final OrderLocalDataSource _orderDataSource;
+  final OrderDataSource _orderDataSource;
 
   TripPlanRepositoryImpl(
     this._localDataSource,

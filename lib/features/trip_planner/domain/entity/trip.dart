@@ -62,4 +62,31 @@ class Trip extends Equatable {
 
   @override
   List<Object?> get props => [id, date, assignedVehicle, assignedOrders, status];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'date': date.toIso8601String(),
+      'assignedVehicle': assignedVehicle?.toJson(),
+      'assignedOrders': assignedOrders.map((order) => order.toJson()).toList(),
+      'status': status.name,
+    };
+  }
+
+  factory Trip.fromJson(Map<String, dynamic> json) {
+    return Trip(
+      id: json['id'] as String,
+      date: DateTime.parse(json['date'] as String),
+      assignedVehicle: json['assignedVehicle'] != null 
+          ? Vehicle.fromJson(json['assignedVehicle'] as Map<String, dynamic>)
+          : null,
+      assignedOrders: (json['assignedOrders'] as List<dynamic>)
+          .map((orderJson) => Order.fromJson(orderJson as Map<String, dynamic>))
+          .toList(),
+      status: TripStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => TripStatus.planned,
+      ),
+    );
+  }
 }

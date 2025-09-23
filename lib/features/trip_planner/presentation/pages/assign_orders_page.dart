@@ -52,6 +52,10 @@ class _AssignOrdersPageState extends State<AssignOrdersPage> {
             serialTracked: false,
           ),
         ],
+        // New optional parameters
+        collectedAmount: null,
+        collectionDate: null,
+        collectionNotes: null,
       ),
       Order(
         id: 'ORD-002',
@@ -68,6 +72,10 @@ class _AssignOrdersPageState extends State<AssignOrdersPage> {
             serialTracked: true,
           ),
         ],
+        // New optional parameters
+        collectedAmount: null,
+        collectionDate: null,
+        collectionNotes: null,
       ),
       Order(
         id: 'ORD-003',

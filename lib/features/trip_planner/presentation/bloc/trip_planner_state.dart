@@ -144,6 +144,14 @@ class TripPlannerLoaded extends TripPlannerState {
               serialTracked: itemJson['serialTracked'] as bool,
             );
           }).toList(),
+          // New optional parameters
+          collectedAmount: orderJson['collectedAmount'] != null 
+              ? (orderJson['collectedAmount'] as num).toDouble() 
+              : null,
+          collectionDate: orderJson['collectionDate'] != null 
+              ? DateTime.parse(orderJson['collectionDate'] as String) 
+              : null,
+          collectionNotes: orderJson['collectionNotes'] as String?,
         );
       }).toList(),
       lastUpdated: DateTime.parse(json['lastUpdated'] as String),

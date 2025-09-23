@@ -4,6 +4,7 @@ import 'package:ionicons/ionicons.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/filter_chip_button.dart';
 import '../../domain/entity/trip.dart';
 import '../bloc/trip_planner_cubit.dart';
 import '../bloc/trip_planner_state.dart';
@@ -26,6 +27,16 @@ class _TripsPageState extends State<TripsPage> {
   @override
   void initState() {
     super.initState();
+    // Load trips when the page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TripPlannerCubit>().loadTrips();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load trips when the page becomes visible
     context.read<TripPlannerCubit>().loadTrips();
   }
 
@@ -48,230 +59,214 @@ class _TripsPageState extends State<TripsPage> {
   }
 
   List<Trip> _filterTrips(List<Trip> trips) {
-    var filteredTrips = trips;
-
-    // Filter by search query
-    if (_searchQuery.isNotEmpty) {
-      filteredTrips = filteredTrips.where((trip) {
-        return trip.id.toLowerCase().contains(_searchQuery) ||
-               (trip.assignedVehicle?.plateNumber.toLowerCase().contains(_searchQuery) ?? false) ||
-               (trip.assignedVehicle?.driverName.toLowerCase().contains(_searchQuery) ?? false);
-      }).toList();
-    }
-
-    // Filter by status
-    if (_selectedStatus != null) {
-      filteredTrips = filteredTrips.where((trip) => trip.status == _selectedStatus).toList();
-    }
-
-    return filteredTrips;
+    return trips.where((trip) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          trip.id.toLowerCase().contains(_searchQuery) ||
+          trip.assignedVehicle?.plateNumber.toLowerCase().contains(_searchQuery) == true;
+      
+      final matchesStatus = _selectedStatus == null || trip.status == _selectedStatus;
+      
+      return matchesSearch && matchesStatus;
+    }).toList();
   }
 
-  Future<void> _refreshTrips() async {
-    await context.read<TripPlannerCubit>().refreshTrips();
-  }
-
-  void _navigateToCreateTrip() {
-    Navigator.of(context).push(
+  void _navigateToTripDetail(String tripId) async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: context.read<TripPlannerCubit>(),
-          child: const CreateTripPage(),
-        ),
+        builder: (context) => TripDetailPage(tripId: tripId),
       ),
     );
+    
+    // Always refresh when returning from trip detail to ensure state is up to date
+    if (mounted) {
+      context.read<TripPlannerCubit>().loadTrips();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Trip Planner',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+        title: const Text('Trips'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _refreshTrips,
+            onPressed: () {
+              context.read<TripPlannerCubit>().loadTrips();
+            },
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Search box
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: CustomTextField(
-                controller: _searchController,
-                isObscure: false,
-                headerText: '',
-                hintText: 'Search by trip ID, vehicle, driver...',
-                prefixIcon: Ionicons.search,
-                keyboardType: TextInputType.text,
-                maxLines: 1,
-                onChanged: _onSearchChanged,
-                validator: (value) => null,
+      body: BlocConsumer<TripPlannerCubit, TripPlannerState>(
+        listener: (context, state) {
+          if (state is TripPlannerError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
               ),
-            ),
-            const Divider(height: 1, color: Colors.grey),
-
-            // Status filter chips
-            Container(
-              height: 60,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is TripPlannerLoading) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildFilterChip(context, 'All', null),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(context, 'Planned', TripStatus.planned),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(context, 'In Progress', TripStatus.inProgress),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(context, 'Completed', TripStatus.completed),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(context, 'Cancelled', TripStatus.cancelled),
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading trips...'),
                 ],
               ),
-            ),
+            );
+          }
 
-            // Trips list
-            Expanded(
-              child: BlocBuilder<TripPlannerCubit, TripPlannerState>(
-                builder: (context, state) {
-                  if (state is TripPlannerLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-
-                  if (state is TripPlannerError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Ionicons.alert_circle,
-                            size: 64,
-                            color: AppTheme.errorColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Error loading trips',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            state.message,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textSecondary,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _refreshTrips,
-                            child: const Text('Retry'),
-                          ),
-                        ],
+          if (state is TripPlannerLoaded) {
+            final filteredTrips = _filterTrips(state.trips);
+            
+            return Column(
+              children: [
+                // Search and filter section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                    );
-                  }
-
-                  if (state is TripPlannerLoaded) {
-                    final filteredTrips = _filterTrips(state.trips);
-
-                    if (filteredTrips.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Search bar
+                      CustomTextField(
+                        controller: _searchController,
+                        hintText: 'Search trips...',
+                        prefixIcon: Icons.search,
+                        onChanged: _onSearchChanged,
+                        isObscure: false,
+                        headerText: 'Search trips...',
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Filter chips
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
                           children: [
-                            Icon(
-                              Ionicons.car_outline,
-                              size: 64,
-                              color: AppTheme.textTertiary,
+                            TripFilterChip(
+                              label: 'All Trips',
+                              isSelected: _selectedStatus == null,
+                              onTap: () => _onStatusFilterChanged(null),
+                              status: null,
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isNotEmpty || _selectedStatus != null
-                                  ? 'No trips found'
-                                  : 'No trips yet',
-                              style: Theme.of(context).textTheme.titleMedium,
+                            const SizedBox(width: 12),
+                            TripFilterChip(
+                              label: 'Planned',
+                              isSelected: _selectedStatus == TripStatus.planned,
+                              onTap: () => _onStatusFilterChanged(TripStatus.planned),
+                              status: TripStatus.planned,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _searchQuery.isNotEmpty || _selectedStatus != null
-                                  ? 'Try adjusting your search or filters'
-                                  : 'Create your first trip to get started',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppTheme.textSecondary,
-                              ),
-                              textAlign: TextAlign.center,
+                            const SizedBox(width: 12),
+                            TripFilterChip(
+                              label: 'Active',
+                              isSelected: _selectedStatus == TripStatus.inProgress,
+                              onTap: () => _onStatusFilterChanged(TripStatus.inProgress),
+                              status: TripStatus.inProgress,
                             ),
-                            if (_searchQuery.isEmpty && _selectedStatus == null) ...[
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: _navigateToCreateTrip,
-                                icon: const Icon(Icons.add),
-                                label: const Text('Create Trip'),
-                              ),
-                            ],
+                            const SizedBox(width: 12),
+                            TripFilterChip(
+                              label: 'Completed',
+                              isSelected: _selectedStatus == TripStatus.completed,
+                              onTap: () => _onStatusFilterChanged(TripStatus.completed),
+                              status: TripStatus.completed,
+                            ),
+                            const SizedBox(width: 12),
+                            TripFilterChip(
+                              label: 'Cancelled',
+                              isSelected: _selectedStatus == TripStatus.cancelled,
+                              onTap: () => _onStatusFilterChanged(TripStatus.cancelled),
+                              status: TripStatus.cancelled,
+                            ),
+                            const SizedBox(width: 16),
                           ],
                         ),
-                      );
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: _refreshTrips,
-                      child: ListView.builder(
-                        itemCount: filteredTrips.length,
-                        itemBuilder: (context, index) {
-                          final trip = filteredTrips[index];
-                          return TripCard(
-                            trip: trip,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => TripDetailPage(tripId: trip.id),
-                                ),
-                              );
-                            },
-                          );
-                        },
                       ),
-                    );
-                  }
+                    ],
+                  ),
+                ),
+                
+                // Trips list
+                Expanded(
+                  child: filteredTrips.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.directions_car_outlined,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No trips found',
+                                style: Theme.of(context).textTheme.headlineSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _searchQuery.isNotEmpty || _selectedStatus != null
+                                    ? 'Try adjusting your search or filter'
+                                    : 'Create your first trip to get started',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: filteredTrips.length,
+                          itemBuilder: (context, index) {
+                            final trip = filteredTrips[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: TripCard(
+                                trip: trip,
+                                onTap: () {
+                                  _navigateToTripDetail(trip.id);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          }
 
-                  return const Center(
-                    child: Text('Unknown state'),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          return const Center(
+            child: Text('No trip data available'),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToCreateTrip,
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const CreateTripPage(),
+            ),
+          );
+        },
         child: const Icon(Icons.add),
       ),
-    );
-  }
-
-  Widget _buildFilterChip(BuildContext context, String label, TripStatus? status) {
-    final isSelected = _selectedStatus == status;
-    
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        _onStatusFilterChanged(selected ? status : null);
-      },
-      selectedColor: AppTheme.primaryColor.withOpacity(0.2),
-      checkmarkColor: AppTheme.primaryColor,
     );
   }
 }

@@ -57,4 +57,29 @@ class Vehicle extends Equatable {
 
   @override
   List<Object?> get props => [id, plateNumber, capacity, volumeCapacity, driverName, status];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'plateNumber': plateNumber,
+      'capacity': capacity,
+      'volumeCapacity': volumeCapacity,
+      'driverName': driverName,
+      'status': status.name,
+    };
+  }
+
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    return Vehicle(
+      id: json['id'] as String,
+      plateNumber: json['plateNumber'] as String,
+      capacity: (json['capacity'] as num).toDouble(),
+      volumeCapacity: (json['volumeCapacity'] as num).toDouble(),
+      driverName: json['driverName'] as String,
+      status: VehicleStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => VehicleStatus.available,
+      ),
+    );
+  }
 }

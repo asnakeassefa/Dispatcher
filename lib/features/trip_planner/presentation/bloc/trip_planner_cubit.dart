@@ -195,26 +195,17 @@ class TripPlannerCubit extends HydratedCubit<TripPlannerState> {
   }) async {
     try {
       emit(const TripPlannerLoading());
-      final updatedTrip = await _updateTripStatusUseCase(
+      final updatedTrip = await _updateTripStatusUseCase.call(
         tripId: tripId,
         status: status,
       );
       
-      final currentState = state;
-      if (currentState is TripPlannerLoaded) {
-        final updatedTrips = currentState.trips.map<Trip>((trip) {
-          return trip.id == tripId ? updatedTrip : trip;
-        }).toList();
-        
-        emit(TripPlannerLoaded(
-          trips: updatedTrips,
-          availableVehicles: currentState.availableVehicles,
-          unassignedOrders: currentState.unassignedOrders,
-          lastUpdated: DateTime.now(),
-        ));
-      }
+      // Reload trips to reflect the updated status
+      await loadTrips();
     } catch (e) {
-      emit(TripPlannerError(message: 'Failed to update trip status: ${e.toString()}'));
+      emit(TripPlannerError(
+        message: 'Failed to update trip status: ${e.toString()}',
+      ));
     }
   }
 
