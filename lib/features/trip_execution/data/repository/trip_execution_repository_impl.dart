@@ -70,6 +70,7 @@ class TripExecutionRepositoryImpl implements TripExecutionRepository {
   Future<Stop> completeOrder(String stopId, String orderId, {
     double? collectedAmount,
     String? collectionNotes,
+    bool isPartialDelivery = false,
   }) async {
     return await _localDataSource.completeOrder(stopId, orderId,
       collectedAmount: collectedAmount,

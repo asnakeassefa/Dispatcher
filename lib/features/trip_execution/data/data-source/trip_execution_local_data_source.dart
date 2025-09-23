@@ -304,6 +304,7 @@ class TripExecutionLocalDataSource {
   Future<Stop> completeOrder(String stopId, String orderId, {
     double? collectedAmount,
     String? collectionNotes,
+    bool isPartialDelivery = false,
   }) async {
     try {
       await Future.delayed(const Duration(milliseconds: 100));
@@ -322,15 +323,22 @@ class TripExecutionLocalDataSource {
         throw DataSourceException('Order cannot be completed in current state: ${order.status}');
       }
 
-      // Complete the order
+      // Complete the order with partial delivery flag
       final completedOrder = order.complete(
         collectedAmount: collectedAmount,
         collectionNotes: collectionNotes,
+        isPartialDelivery: isPartialDelivery,
       );
 
       // Update the stop with the completed order
       final updatedStop = stop.updateOrder(completedOrder);
-      _stops[stopId] = updatedStop;
+      
+      // Auto-complete the stop if all orders are completed or failed
+      final finalStop = updatedStop.allOrdersCompleted() && updatedStop.status == StopStatus.inTransit
+          ? updatedStop.complete(notes: 'Auto-completed: All orders completed')
+          : updatedStop;
+      
+      _stops[stopId] = finalStop;
       
       // Update the trip execution
       final tripExecution = _tripExecutions.values.firstWhere(
@@ -338,12 +346,12 @@ class TripExecutionLocalDataSource {
         orElse: () => throw DataSourceException('Trip execution not found for stop: $stopId'),
       );
       
-      final updatedStops = tripExecution.stops.map((s) => s.id == stopId ? updatedStop : s).toList();
+      final updatedStops = tripExecution.stops.map((s) => s.id == stopId ? finalStop : s).toList();
       final updatedTripExecution = tripExecution.copyWith(stops: updatedStops);
       _tripExecutions[tripExecution.id] = updatedTripExecution;
       
       await _saveToStorage();
-      return updatedStop;
+      return finalStop;
     } catch (e) {
       throw DataSourceException('Failed to complete order: ${e.toString()}');
     }
@@ -373,7 +381,13 @@ class TripExecutionLocalDataSource {
 
       // Update the stop with the failed order
       final updatedStop = stop.updateOrder(failedOrder);
-      _stops[stopId] = updatedStop;
+      
+      // Auto-complete the stop if all orders are completed or failed
+      final finalStop = updatedStop.allOrdersCompleted() && updatedStop.status == StopStatus.inTransit
+          ? updatedStop.complete(notes: 'Auto-completed: All orders processed')
+          : updatedStop;
+      
+      _stops[stopId] = finalStop;
       
       // Update the trip execution
       final tripExecution = _tripExecutions.values.firstWhere(
@@ -381,12 +395,12 @@ class TripExecutionLocalDataSource {
         orElse: () => throw DataSourceException('Trip execution not found for stop: $stopId'),
       );
       
-      final updatedStops = tripExecution.stops.map((s) => s.id == stopId ? updatedStop : s).toList();
+      final updatedStops = tripExecution.stops.map((s) => s.id == stopId ? finalStop : s).toList();
       final updatedTripExecution = tripExecution.copyWith(stops: updatedStops);
       _tripExecutions[tripExecution.id] = updatedTripExecution;
       
       await _saveToStorage();
-      return updatedStop;
+      return finalStop;
     } catch (e) {
       throw DataSourceException('Failed to fail order: ${e.toString()}');
     }

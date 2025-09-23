@@ -798,6 +798,41 @@ class _TripExecutionPageContentState extends State<_TripExecutionPageContent> {
   }
 
   Future<void> _showCompleteOrderDialog(BuildContext context, Stop stop, Order order) async {
+    // Show warning for discounted orders
+    if (order.isDiscounted) {
+      final confirmFullDelivery = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Discounted Order Notice'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.warning, color: Colors.orange, size: 48),
+              const SizedBox(height: 16),
+              Text('Order ${order.id} is discounted.'),
+              const SizedBox(height: 8),
+              const Text(
+                'Partial delivery is not allowed for discounted orders. Please ensure all items are delivered.',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Confirm Full Delivery'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmFullDelivery != true) return;
+    }
+
     // Check if order has COD amount
     if (order.codAmount > 0) {
       // Show COD verification dialog
@@ -816,6 +851,7 @@ class _TripExecutionPageContentState extends State<_TripExecutionPageContent> {
             order.id,
             collectedAmount: codData['collectedAmount'] as double?,
             collectionNotes: codData['collectionNotes'] as String?,
+            isPartialDelivery: false, // Always full delivery for now
           );
         }
       }
@@ -824,6 +860,7 @@ class _TripExecutionPageContentState extends State<_TripExecutionPageContent> {
       await context.read<TripExecutionCubit>().completeOrder(
         stop.id,
         order.id,
+        isPartialDelivery: false, // Always full delivery for now
       );
     }
   }

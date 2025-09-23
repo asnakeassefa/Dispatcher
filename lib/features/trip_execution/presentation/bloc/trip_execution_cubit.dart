@@ -404,6 +404,7 @@ class TripExecutionCubit extends HydratedCubit<TripExecutionState> {
   Future<void> completeOrder(String stopId, String orderId, {
     double? collectedAmount,
     String? collectionNotes,
+    bool isPartialDelivery = false, // Add this parameter
   }) async {
     try {
       final currentState = state;
@@ -413,12 +414,30 @@ class TripExecutionCubit extends HydratedCubit<TripExecutionState> {
       
       final tripExecutionId = currentState.tripExecution.id;
       
+      // Find the order to validate business rules
+      final stop = currentState.tripExecution.stops.firstWhere(
+        (s) => s.id == stopId,
+        orElse: () => throw Exception('Stop not found: $stopId'),
+      );
+      
+      final order = stop.orders.firstWhere(
+        (o) => o.id == orderId,
+        orElse: () => throw Exception('Order not found: $orderId'),
+      );
+      
+      // Business rule validation: Partial delivery policy
+      if (isPartialDelivery && order.isDiscounted) {
+        emit(TripExecutionError(message: 'Partial delivery is not allowed for discounted orders. Please deliver all items or mark as failed.', timestamp: DateTime.now()));
+        return;
+      }
+      
       emit(const TripExecutionLoading());
       
       // Complete the order
       await _repository.completeOrder(stopId, orderId, 
         collectedAmount: collectedAmount,
         collectionNotes: collectionNotes,
+        isPartialDelivery: isPartialDelivery,
       );
       
       // Reload the trip execution

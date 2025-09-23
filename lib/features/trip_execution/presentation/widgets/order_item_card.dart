@@ -51,6 +51,32 @@ class OrderItemCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Discounted badge
+                if (order.isDiscounted)
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.local_offer, size: 12, color: Colors.orange[700]),
+                        const SizedBox(width: 2),
+                        Text(
+                          'Discounted',
+                          style: TextStyle(
+                            color: Colors.orange[700],
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 // Status badge
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

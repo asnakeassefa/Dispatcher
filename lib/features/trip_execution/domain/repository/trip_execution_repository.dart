@@ -26,6 +26,7 @@ abstract class TripExecutionRepository {
   Future<Stop> completeOrder(String stopId, String orderId, {
     double? collectedAmount,
     String? collectionNotes,
+    bool isPartialDelivery = false, // Add this parameter
   });
 
   // Fail a specific order within a stop

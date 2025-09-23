@@ -119,12 +119,24 @@ class Order extends Equatable {
   bool canComplete() => status == OrderStatus.pending;
   bool canFail() => status == OrderStatus.pending;
 
+  // Business rule: Partial delivery validation
+  bool canCompletePartially() => !isDiscounted;
+  
+  // For full delivery, we always allow completion (assuming all items delivered)
+  bool canCompleteFullDelivery() => canComplete();
+
   Order complete({
     double? collectedAmount,
     String? collectionNotes,
+    bool isPartialDelivery = false, // Add this parameter
   }) {
     if (!canComplete()) {
       throw StateTransitionException('Cannot complete order from ${status.name} status');
+    }
+    
+    // Business rule: Partial delivery forbidden for discounted orders
+    if (isPartialDelivery && isDiscounted) {
+      throw StateTransitionException('Partial delivery is not allowed for discounted orders');
     }
     
     return copyWith(
