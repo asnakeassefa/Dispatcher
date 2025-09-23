@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ionicons/ionicons.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/entity/trip.dart';
 import '../../../order/domain/entity/order.dart';
-import '../../../order/domain/entity/customer.dart';
 import '../bloc/trip_planner_cubit.dart';
 import '../bloc/trip_planner_state.dart';
 
