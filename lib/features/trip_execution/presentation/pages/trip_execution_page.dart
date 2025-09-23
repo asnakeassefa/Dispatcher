@@ -4,6 +4,7 @@ import 'package:ionicons/ionicons.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/state/app_state_manager.dart'; // Import the state manager
 import '../../../order/domain/entity/order.dart';
 import '../../domain/entity/trip_execution.dart';
 import '../../domain/entity/stop.dart';
@@ -12,8 +13,7 @@ import '../bloc/trip_execution_state.dart';
 import '../widgets/stop_card.dart';
 import '../widgets/trip_progress_widget.dart';
 import 'stop_detail_page.dart';
-import 'package:flutter/services.dart';
-import '../widgets/cod_verification_dialog.dart'; // Add this import
+import '../widgets/cod_verification_dialog.dart';
 
 class TripExecutionPage extends StatelessWidget {
   final String tripId;
@@ -47,10 +47,19 @@ class _TripExecutionPageContentState extends State<_TripExecutionPageContent> {
   @override
   void initState() {
     super.initState();
-    // Load trip execution when page loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadOrCreateTripExecution();
-    });
+    
+    // Save trip execution ID for state restoration
+    context.read<AppStateManager>().updateCurrentTripExecution(widget.tripId);
+    
+    // Load or create trip execution
+    _loadOrCreateTripExecution();
+  }
+
+  @override
+  void dispose() {
+    // Clear trip execution ID when leaving
+    context.read<AppStateManager>().updateCurrentTripExecution(null);
+    super.dispose();
   }
 
   Future<void> _loadOrCreateTripExecution() async {
