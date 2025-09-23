@@ -11,14 +11,41 @@ import '../bloc/trip_planner_cubit.dart';
 import '../bloc/trip_planner_state.dart';
 import '../pages/assign_orders_page.dart';
 import '../../../trip_execution/presentation/pages/trip_execution_page.dart';
+import '../../../../core/utils/timezone_helper.dart';
 
-class TripDetailPage extends StatelessWidget {
+class TripDetailPage extends StatefulWidget {
   final String tripId;
 
   const TripDetailPage({
     super.key,
     required this.tripId,
   });
+
+  @override
+  State<TripDetailPage> createState() => _TripDetailPageState();
+}
+
+class _TripDetailPageState extends State<TripDetailPage> {
+  String _depotTimezone = 'UTC';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDepotTimezone();
+  }
+
+  Future<void> _loadDepotTimezone() async {
+    try {
+      final timezone = await TimezoneHelper.getDepotTimezone();
+      if (mounted) {
+        setState(() {
+          _depotTimezone = timezone;
+        });
+      }
+    } catch (e) {
+      // Keep default UTC
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,27 +129,27 @@ class TripDetailPage extends StatelessWidget {
           try {
             // Try exact match first
             trip = state.trips.firstWhere(
-              (t) => t.id == tripId,
+              (t) => t.id == widget.tripId,
               orElse: () => throw Exception('Trip not found'),
             );
           } catch (e) {
             // Try case-insensitive match
             try {
               trip = state.trips.firstWhere(
-                (t) => t.id.toLowerCase() == tripId.toLowerCase(),
+                (t) => t.id.toLowerCase() == widget.tripId.toLowerCase(),
                 orElse: () => throw Exception('Trip not found'),
               );
             } catch (e2) {
               // Try trimmed match
               try {
                 trip = state.trips.firstWhere(
-                  (t) => t.id.trim() == tripId.trim(),
+                  (t) => t.id.trim() == widget.tripId.trim(),
                   orElse: () => throw Exception('Trip not found'),
                 );
               } catch (e3) {
                 // Try partial match
                 trip = state.trips.firstWhere(
-                  (t) => t.id.contains(tripId) || tripId.contains(t.id),
+                  (t) => t.id.contains(widget.tripId) || widget.tripId.contains(t.id),
                   orElse: () => throw Exception('Trip not found'),
                 );
               }
@@ -276,13 +303,19 @@ class TripDetailPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        _formatDate(trip.date),
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      FutureBuilder<String>(
+                        future: TimezoneHelper.getDepotTimezone(),
+                        builder: (context, snapshot) {
+                          final timezone = snapshot.data ?? 'UTC';
+                          return Text(
+                            'Scheduled: ${TimezoneHelper.formatDepotDate(trip.date, timezone)} at ${TimezoneHelper.formatDepotTime(trip.date, timezone)} ($timezone)',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
