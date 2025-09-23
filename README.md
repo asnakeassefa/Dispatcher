@@ -89,7 +89,6 @@ flutter run --flavor dev -t lib/main_dev.dart -d web
 - **COD Accuracy**: Cash collection validation with tolerance
 - **Partial Delivery Policy**: Prevents partial delivery for discounted orders
 - **Timezone Awareness**: Depot timezone handling for all date/time operations
-- **Capacity Calculation**: Vehicle capacity based on fill rate
 
 ### 🎯 **State Management**
 - **HydratedBloc**: Automatic state persistence
@@ -111,10 +110,6 @@ flutter run --flavor dev -t lib/main_dev.dart -d web
 3. **Bloc over Provider/Riverpod**
    - **Why**: Better state management for complex business logic
    - **Trade-off**: Steeper learning curve, but more predictable state flow
-
-4. **Local Storage over Cloud Sync**
-   - **Why**: Offline-first approach, better performance
-   - **Trade-off**: No real-time sync, but works without internet
 
 ### ⚠️ **Limitations**
 
