@@ -7,6 +7,7 @@ import '../../../../core/utils/timezone_helper.dart';
 import '../bloc/trip_planner_cubit.dart';
 import '../bloc/trip_planner_state.dart';
 import '../../domain/entity/vehicle.dart';
+import '../../../../core/state/app_state_manager.dart';
 
 class CreateTripPage extends StatefulWidget {
   const CreateTripPage({super.key});
@@ -21,6 +22,9 @@ class _CreateTripPageState extends State<CreateTripPage> {
   Vehicle? _selectedVehicle;
   bool _isCreating = false;
   String _depotTimezone = 'UTC'; // Default
+  String? _savedVehicleId; // To store the ID of the selected vehicle
+
+  static const String _formStateKey = 'create_trip_form_state';
 
   @override
   void initState() {
@@ -33,6 +37,13 @@ class _CreateTripPageState extends State<CreateTripPage> {
       context.read<TripPlannerCubit>().loadAvailableVehicles();
     });
     _loadDepotTimezone();
+    _loadFormState(); // Load saved form state
+  }
+
+  @override
+  void dispose() {
+    _saveFormState(); // Save form state when leaving
+    super.dispose();
   }
 
   Future<void> _loadDepotTimezone() async {
@@ -44,6 +55,47 @@ class _CreateTripPageState extends State<CreateTripPage> {
     } catch (e) {
       // Keep default UTC
     }
+  }
+
+  void _loadFormState() {
+    final appState = context.read<AppStateManager>().state;
+    final formState = appState.additionalState[_formStateKey] as Map<String, dynamic>?;
+    
+    if (formState != null) {
+      setState(() {
+        if (formState['selectedDate'] != null) {
+          _selectedDate = DateTime.parse(formState['selectedDate']);
+        }
+        if (formState['selectedTime'] != null) {
+          final timeMap = formState['selectedTime'] as Map<String, dynamic>;
+          _selectedTime = TimeOfDay(
+            hour: timeMap['hour'],
+            minute: timeMap['minute'],
+          );
+        }
+        if (formState['selectedVehicleId'] != null) {
+          // Will be set when vehicles are loaded
+          _savedVehicleId = formState['selectedVehicleId'];
+        }
+      });
+    }
+  }
+
+  void _saveFormState() {
+    final formState = {
+      'selectedDate': _selectedDate?.toIso8601String(),
+      'selectedTime': _selectedTime != null 
+          ? {'hour': _selectedTime!.hour, 'minute': _selectedTime!.minute}
+          : null,
+      'selectedVehicleId': _selectedVehicle?.id,
+    };
+    
+    context.read<AppStateManager>().updateAdditionalState(_formStateKey, formState);
+  }
+
+  // Call _saveFormState() whenever form values change
+  void _onFormChanged() {
+    _saveFormState();
   }
 
   Future<void> _selectDate() async {
@@ -58,6 +110,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
       setState(() {
         _selectedDate = date;
       });
+      _onFormChanged();
     }
   }
 
@@ -71,6 +124,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
       setState(() {
         _selectedTime = time;
       });
+      _onFormChanged();
     }
   }
 
