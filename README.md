@@ -77,19 +77,6 @@ flutter run --flavor dev -t lib/main_dev.dart -d ios
 flutter run --flavor dev -t lib/main_dev.dart -d web
 ```
 
-### Running Tests
-
-```bash
-# Unit tests
-flutter test
-
-# Integration tests
-flutter test integration_test/
-
-# Coverage report
-flutter test --coverage
-```
-
 ## Key Features
 
 ### 🚀 **Comprehensive State Persistence**
