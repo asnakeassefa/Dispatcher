@@ -27,9 +27,16 @@ class OrderDataSource {
       // Extract only orders from the JSON
       final List<dynamic> ordersJson = jsonData['orders'] as List<dynamic>? ?? [];
       
-      return ordersJson
-          .map((orderJson) => OrderDataModel.fromJson(orderJson as Map<String, dynamic>))
-          .toList();
+      return ordersJson.map((orderJson) {
+        try {
+          return OrderDataModel.fromJson(orderJson as Map<String, dynamic>);
+        } catch (e) {
+          throw DataParseException(
+            'Failed to parse order: ${orderJson.toString()}. Error: ${e.toString()}',
+            originalError: e,
+          );
+        }
+      }).toList();
     } on PlatformException catch (e) {
       throw DataLoadException(
         'Failed to load data file: ${e.message ?? 'Unknown platform error'}',

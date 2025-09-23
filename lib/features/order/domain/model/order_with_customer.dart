@@ -20,6 +20,16 @@ class OrderWithCustomer extends Equatable {
   List<OrderItem> get items => order.items;
   double get totalWeight => order.totalWeight;
   double get totalVolume => order.totalVolume;
+  
+  // COD tracking getters
+  double? get collectedAmount => order.collectedAmount;
+  DateTime? get collectionDate => order.collectionDate;
+  String? get collectionNotes => order.collectionNotes;
+  bool get isCollected => order.isCollected;
+  double get collectionDifference => order.collectionDifference;
+  bool get hasShortfall => order.hasShortfall;
+  bool get hasOverCollection => order.hasOverCollection;
+  bool get isWithinTolerance => order.isWithinTolerance;
 
   // Customer properties
   String? get customerName => customer?.name;

@@ -63,6 +63,9 @@ class OrderDataModel extends Equatable {
   final double codAmount;
   final bool isDiscounted;
   final List<OrderItemDataModel> items;
+  final double? collectedAmount;
+  final DateTime? collectionDate;
+  final String? collectionNotes;
 
   const OrderDataModel({
     required this.id,
@@ -70,6 +73,9 @@ class OrderDataModel extends Equatable {
     required this.codAmount,
     required this.isDiscounted,
     required this.items,
+    this.collectedAmount,
+    this.collectionDate,
+    this.collectionNotes,
   });
 
   factory OrderDataModel.fromJson(Map<String, dynamic> json) {
@@ -81,6 +87,14 @@ class OrderDataModel extends Equatable {
       items: (json['items'] as List<dynamic>)
           .map((itemJson) => OrderItemDataModel.fromJson(itemJson as Map<String, dynamic>))
           .toList(),
+      // COD fields - handle missing fields gracefully
+      collectedAmount: json.containsKey('collectedAmount') && json['collectedAmount'] != null 
+          ? (json['collectedAmount'] as num).toDouble() 
+          : null,
+      collectionDate: json.containsKey('collectionDate') && json['collectionDate'] != null 
+          ? DateTime.parse(json['collectionDate'] as String) 
+          : null,
+      collectionNotes: json.containsKey('collectionNotes') ? json['collectionNotes'] as String? : null,
     );
   }
 
@@ -91,6 +105,9 @@ class OrderDataModel extends Equatable {
       'codAmount': codAmount,
       'isDiscounted': isDiscounted,
       'items': items.map((item) => item.toJson()).toList(),
+      'collectedAmount': collectedAmount,
+      'collectionDate': collectionDate?.toIso8601String(),
+      'collectionNotes': collectionNotes,
     };
   }
 
@@ -102,9 +119,12 @@ class OrderDataModel extends Equatable {
       codAmount: codAmount,
       isDiscounted: isDiscounted,
       items: items.map((item) => item.toEntity()).toList(),
+      collectedAmount: collectedAmount,
+      collectionDate: collectionDate,
+      collectionNotes: collectionNotes,
     );
   }
 
   @override
-  List<Object?> get props => [id, customerId, codAmount, isDiscounted, items];
+  List<Object?> get props => [id, customerId, codAmount, isDiscounted, items, collectedAmount, collectionDate, collectionNotes];
 }
