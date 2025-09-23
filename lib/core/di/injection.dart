@@ -1,14 +1,11 @@
 import 'package:get_it/get_it.dart';
-import 'package:injectable/injectable.dart';
+import 'package:injectable/injectable.dart' as injectable;
 
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
 
-@InjectableInit(
-  initializerName: r'$initGetIt', // default
-  preferRelativeImports: true, // default
-  asExtension: false, // default
-)
-Future<void> configureInjection(String env) async =>
-    $initGetIt(getIt, environment: env);
+@injectable.injectableInit
+Future<void> configureInjection(String environment) async {
+  getIt.init(environment: environment);
+}
