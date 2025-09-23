@@ -9,17 +9,17 @@ import 'app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize dependency injection
+  // Initialize HydratedBloc storage FIRST (before any HydratedCubit is created)
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: await getApplicationDocumentsDirectory(),
+  );
+  
+  // Initialize dependency injection AFTER HydratedStorage
   await configureInjection("dev");
   
   // Initialize database
   final database = getIt<AppDatabase>();
   await database.customStatement('PRAGMA foreign_keys = ON');
-  
-  // Initialize HydratedBloc storage
-  HydratedBloc.storage = await HydratedStorage.build(
-    storageDirectory: await getApplicationDocumentsDirectory(),
-  );
   
   runApp(const MyApp());
 }
